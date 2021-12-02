@@ -100,10 +100,9 @@
 const std = @import("std");
 const fs = std.fs;
 
-fn read_from_file(
-        allocator: *std.mem.Allocator,
-        filename: []const u8,
-        nrows: u32) ![]u32 {
+// {{{ helpers
+
+fn read_from_file(allocator: *std.mem.Allocator, filename: []const u8, nrows: u32) ![]u32 {
     var file = try fs.cwd().openFile(filename, .{ .read = true });
     defer file.close();
 
@@ -118,12 +117,20 @@ fn read_from_file(
         measurements[i] = try std.fmt.parseInt(u32, line, 10);
 
         i += 1;
-        if (i >= nrows) { break; }
+        if (i >= nrows) {
+            break;
+        }
     }
 
-    if (i < nrows) { std.debug.print("Read too many lines?", .{}); }
+    if (i < nrows) {
+        std.debug.print("Read too many lines?", .{});
+    }
     return measurements;
 }
+
+// }}}
+
+// {{{ part one
 
 fn count_measurement_increases(measurements: []u32) u32 {
     var counter: u32 = 0;
@@ -137,11 +144,37 @@ fn count_measurement_increases(measurements: []u32) u32 {
     return counter;
 }
 
+// }}}
+
+// {{{ part two
+
 fn count_measurement_windowed_increases(measurements: []u32, window: u32) u32 {
-    return 0;
+    var counter: u32 = 0;
+    var i: u32 = 0;
+    var previous_window: u32 = 0;
+    var current_window: u32 = 0;
+
+    // get first window
+    while (i < window) {
+        previous_window += measurements[i];
+        i += 1;
+    }
+
+    // go through the array and update the previous / current windows and check
+    while (i < measurements.len) {
+        current_window = (previous_window - measurements[i - window]) + measurements[i];
+        counter += @boolToInt(previous_window < current_window);
+
+        previous_window = current_window;
+        i += 1;
+    }
+
+    return counter;
 }
 
-pub fn main () void {
+// }}}
+
+pub fn main() void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
@@ -151,8 +184,6 @@ pub fn main () void {
     };
     defer gpa.allocator.free(measurements);
 
-    std.debug.print("Your puzzle answer was {d}.\n",
-        .{count_measurement_increases(measurements)});
-    std.debug.print("Your puzzle answer was {d}.\n",
-        .{count_measurement_windowed_increases(measurements, 3)});
+    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_increases(measurements)});
+    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_windowed_increases(measurements, 3)});
 }

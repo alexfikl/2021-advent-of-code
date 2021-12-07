@@ -1,3 +1,5 @@
+// --- Day 1: Sonar Sweep ---
+//
 // --- Part One ---
 //
 // As the submarine drops below the surface of the ocean, it automatically

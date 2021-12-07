@@ -147,7 +147,7 @@ fn get_answer_from_file(filename: []const u8) !Answer {
     var in_stream = reader.reader();
 
     // NOTE: just hardcoding this here for the given inputs; avoids allocations!
-    var one_bit_counts = [_]u32 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    var one_bit_counts = [_]u32{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
     var buffer: [32]u8 = undefined;
     var nlines: u32 = 0;
@@ -175,7 +175,7 @@ fn get_answer_from_file(filename: []const u8) !Answer {
             continue;
         }
 
-        std.debug.print("count[{d}] = {d} / {d}\n", .{i, one_bit_counts[i], nlines});
+        std.debug.print("count[{d}] = {d} / {d}\n", .{ i, one_bit_counts[i], nlines });
 
         var mask = shift_mask(i);
         if (one_bit_counts[i] > (nlines - one_bit_counts[i])) {
@@ -192,25 +192,20 @@ fn get_answer_from_file(filename: []const u8) !Answer {
     return Answer{ .gamma_rate = gamma_rate, .epsilon_rate = epsilon_rate };
 }
 
-
 pub fn main() void {
-    var example = get_answer_from_file( "example.txt") catch {
+    var example = get_answer_from_file("example.txt") catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("gamma {d} epsilon {d}\n",
-        .{example.gamma_rate, example.epsilon_rate});
-    std.debug.print("Your example answer was {d}.\n",
-        .{example.gamma_rate * example.epsilon_rate});
+    std.debug.print("gamma {d} epsilon {d}\n", .{ example.gamma_rate, example.epsilon_rate });
+    std.debug.print("Your example answer was {d}.\n", .{example.gamma_rate * example.epsilon_rate});
 
-    var answer = get_answer_from_file( "input.txt") catch {
+    var answer = get_answer_from_file("input.txt") catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("gamma {d} epsilon {d}\n",
-        .{answer.gamma_rate, answer.epsilon_rate});
-    std.debug.print("Your puzzle answer was {d}.\n",
-        .{answer.gamma_rate * answer.epsilon_rate});
+    std.debug.print("gamma {d} epsilon {d}\n", .{ answer.gamma_rate, answer.epsilon_rate });
+    std.debug.print("Your puzzle answer was {d}.\n", .{answer.gamma_rate * answer.epsilon_rate});
 }

@@ -92,7 +92,6 @@ const Answer = struct {
     length: u32,
 };
 
-
 fn get_answer_from_file(filename: []const u8, aimed: bool) !Answer {
     var file = try fs.cwd().openFile(filename, .{ .read = true });
     defer file.close();
@@ -130,32 +129,32 @@ fn get_answer_from_file(filename: []const u8, aimed: bool) !Answer {
         } else if (std.mem.eql(u8, direction, "forward")) {
             length += amount;
 
-            if (aimed) { depth += (aim * amount); }
+            if (aimed) {
+                depth += (aim * amount);
+            }
         } else {
             std.debug.print("Oh noes! Found unknown command '{s}'!\n", .{direction});
             break;
         }
     }
 
-    return Answer{.depth = depth, .length = length};
+    return Answer{ .depth = depth, .length = length };
 }
 
 pub fn main() void {
-    var example = get_answer_from_file( "example.txt", true) catch {
+    var example = get_answer_from_file("example.txt", true) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("Depth {d} Length {d}\n", .{example.depth, example.length});
-    std.debug.print("Your example answer was {d}.\n",
-        .{example.depth * example.length});
+    std.debug.print("Depth {d} Length {d}\n", .{ example.depth, example.length });
+    std.debug.print("Your example answer was {d}.\n", .{example.depth * example.length});
 
-    var answer = get_answer_from_file( "input.txt", true) catch {
+    var answer = get_answer_from_file("input.txt", true) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("Depth {d} Length {d}\n", .{answer.depth, answer.length});
-    std.debug.print("Your puzzle answer was {d}.\n",
-        .{answer.depth * answer.length});
+    std.debug.print("Depth {d} Length {d}\n", .{ answer.depth, answer.length });
+    std.debug.print("Your puzzle answer was {d}.\n", .{answer.depth * answer.length});
 }

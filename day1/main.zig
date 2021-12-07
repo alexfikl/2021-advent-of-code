@@ -186,8 +186,6 @@ pub fn main() void {
     };
     defer gpa.allocator.free(measurements);
 
-    std.debug.print("Your puzzle answer was {d}.\n",
-        .{count_measurement_increases(measurements)});
-    std.debug.print("Your puzzle answer was {d}.\n",
-        .{count_measurement_windowed_increases(measurements, 3)});
+    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_increases(measurements)});
+    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_windowed_increases(measurements, 3)});
 }

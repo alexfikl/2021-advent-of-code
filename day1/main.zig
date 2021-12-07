@@ -102,14 +102,14 @@ const fs = std.fs;
 
 // {{{ helpers
 
-fn read_from_file(allocator: *std.mem.Allocator, filename: []const u8, nrows: u32) ![]u32 {
+fn read_from_file(allocator: *std.mem.Allocator, filename: []const u8, nlines: u32) ![]u32 {
     var file = try fs.cwd().openFile(filename, .{ .read = true });
     defer file.close();
 
     var reader = std.io.bufferedReader(file.reader());
     var in_stream = reader.reader();
 
-    var measurements = try allocator.alloc(u32, nrows);
+    var measurements = try allocator.alloc(u32, nlines);
 
     var buffer: [32]u8 = undefined;
     var i: u32 = 0;
@@ -117,13 +117,13 @@ fn read_from_file(allocator: *std.mem.Allocator, filename: []const u8, nrows: u3
         measurements[i] = try std.fmt.parseInt(u32, line, 10);
 
         i += 1;
-        if (i >= nrows) {
+        if (i >= nlines) {
             break;
         }
     }
 
-    if (i < nrows) {
-        std.debug.print("Read too many lines?", .{});
+    if (i < nlines) {
+        std.debug.print("Read too few lines?", .{});
     }
     return measurements;
 }
@@ -184,6 +184,8 @@ pub fn main() void {
     };
     defer gpa.allocator.free(measurements);
 
-    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_increases(measurements)});
-    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_windowed_increases(measurements, 3)});
+    std.debug.print("Your puzzle answer was {d}.\n",
+        .{count_measurement_increases(measurements)});
+    std.debug.print("Your puzzle answer was {d}.\n",
+        .{count_measurement_windowed_increases(measurements, 3)});
 }

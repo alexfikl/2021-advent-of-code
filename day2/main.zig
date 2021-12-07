@@ -90,14 +90,10 @@ const fs = std.fs;
 const Answer = struct {
     depth: u32,
     length: u32,
-    aim: u32,
 };
 
 
-fn get_answer_from_file(
-        filename: []const u8,
-        nlines: u32,
-        aimed: bool) !Answer {
+fn get_answer_from_file(filename: []const u8, aimed: bool) !Answer {
     var file = try fs.cwd().openFile(filename, .{ .read = true });
     defer file.close();
 
@@ -109,7 +105,6 @@ fn get_answer_from_file(
     var aim: u32 = 0;
 
     var buffer: [128]u8 = undefined;
-    var i: u32 = 0;
     while (try in_stream.readUntilDelimiterOrEof(&buffer, '\n')) |line| {
         var it = std.mem.split(line, " ");
         var direction = it.next().?;
@@ -140,21 +135,13 @@ fn get_answer_from_file(
             std.debug.print("Oh noes! Found unknown command '{s}'!\n", .{direction});
             break;
         }
-
-        i += 1;
-        if (i >= nlines) {
-            break;
-        }
     }
 
-    if (i < nlines) {
-        std.debug.print("Read too few lines?", .{});
-    }
-    return Answer{.depth = depth, .length = length, .aim = aim};
+    return Answer{.depth = depth, .length = length};
 }
 
 pub fn main() void {
-    var example = get_answer_from_file( "example.txt", 6, true) catch {
+    var example = get_answer_from_file( "example.txt", true) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
@@ -163,7 +150,7 @@ pub fn main() void {
     std.debug.print("Your example answer was {d}.\n",
         .{example.depth * example.length});
 
-    var answer = get_answer_from_file( "input.txt", 1000, true) catch {
+    var answer = get_answer_from_file( "input.txt", true) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };

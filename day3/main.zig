@@ -54,6 +54,8 @@
 // consumption of the submarine? (Be sure to represent your answer in decimal,
 // not binary.)
 //
+// Your puzzle answer was 3847100.
+//
 // --- Part Two ---
 //
 // Next, you should verify the life support rating, which can be determined by
@@ -131,15 +133,29 @@ const std = @import("std");
 const fs = std.fs;
 
 const Answer = struct {
-    gamma_rate: u32,
-    epsilon_rate: u32,
+    gamma_rate: u32 = 0,
+    epsilon_rate: u32 = 0,
+    oxygen_rating: u32 = 0,
+    co2_rating: u32 = 0
 };
 
-fn shift_mask(i: u5) u32 {
-    return @as(u32, 1) << i;
+fn count_bits_in_line(counts: []u32, entry: u32, nbits: usize) !void {
+    var i: u5 = 0;
+    while (i < nbits) {
+        // FIXME: how to get i-th bit?
+        var mask: u32 = @as(u32, 1) << i;
+        if (entry & mask != 0) {
+            counts[i] += 1;
+        }
+        i += 1;
+    }
 }
 
-fn get_answer_from_file(filename: []const u8) !Answer {
+fn is_oxygen_rating(counts: []u32, entry: u32) bool {
+}
+
+fn get_answer_from_file(
+        allocator: *std.mem.Allocator, filename: []const u8, nlines: u32) !Answer {
     var file = try fs.cwd().openFile(filename, .{ .read = true });
     defer file.close();
 
@@ -147,65 +163,103 @@ fn get_answer_from_file(filename: []const u8) !Answer {
     var in_stream = reader.reader();
 
     // NOTE: just hardcoding this here for the given inputs; avoids allocations!
-    var one_bit_counts = [_]u32{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    var one_bit_counts = [_]u32{ 0 } ** 12;
+    var entries = try allocator.alloc(u32, nlines);
+    defer allocator.free(entries);
+
+    // {{{ gather bit count in every position
 
     var buffer: [32]u8 = undefined;
-    var nlines: u32 = 0;
-    while (try in_stream.readUntilDelimiterOrEof(&buffer, '\n')) |line| {
-        var entry = try std.fmt.parseInt(u32, line, 2);
-        var i: u5 = 0;
-        while (i < one_bit_counts.len) {
-            // FIXME: how to get i-th bit?
-            var mask: u32 = shift_mask(i);
-            if (entry & mask != 0) {
-                one_bit_counts[i] += 1;
+    var nbits: usize = 0;
+
+    {
+        var i: u32 = 0;
+        while (try in_stream.readUntilDelimiterOrEof(&buffer, '\n')) |line| {
+            if (i == 0) {
+                nbits = line.len;
             }
+
+            entries[i] = try std.fmt.parseInt(u32, line, 2);
+            try count_bits_in_line(&one_bit_counts, entries[i], nbits);
+
             i += 1;
+            if (i >= nlines) {
+                break;
+            }
         }
 
-        nlines += 1;
+        if (i < nlines) {
+            std.debug.print("Read too few lines?", .{});
+            return Answer{};
+        }
     }
+
+    // }}}
+
+    // {{{ reconstruct gamma and epsilon
 
     var gamma_rate: u32 = 0;
     var epsilon_rate: u32 = 0;
-    var i: u5 = 0;
-    while (i < one_bit_counts.len) {
-        if (one_bit_counts[i] == 0) {
+
+    {
+        var i: u5 = 0;
+        while (i < nbits) {
+            var mask: u32 = @as(u32, 1) << i;
+            if (one_bit_counts[i] > (nlines - one_bit_counts[i])) {
+                // NOTE: 1 was the most common bit -> put it in gamma
+                gamma_rate |= mask;
+            } else {
+                // NOTE: 1 was the less common bit -> put it it epsilon
+                epsilon_rate |= mask;
+            }
+
             i += 1;
-            continue;
         }
-
-        std.debug.print("count[{d}] = {d} / {d}\n", .{ i, one_bit_counts[i], nlines });
-
-        var mask = shift_mask(i);
-        if (one_bit_counts[i] > (nlines - one_bit_counts[i])) {
-            // NOTE: 1 was the most common bit -> put it in gamma
-            gamma_rate |= mask;
-        } else {
-            // NOTE: 1 was the less common bit -> put it it epsilon
-            epsilon_rate |= mask;
-        }
-
-        i += 1;
     }
 
-    return Answer{ .gamma_rate = gamma_rate, .epsilon_rate = epsilon_rate };
+    // }}}
+
+    // {{{ reconstruct oxygen and co2
+
+    var oxygen_rating: u32 = 0;
+    var co2_rating: u32 = 0;
+
+    {
+        var i: u5 = 0;
+        while (i < nbits) {
+            i += 1;
+        }
+    }
+
+    // }}}
+
+    return Answer{
+        .gamma_rate = gamma_rate,
+        .epsilon_rate = epsilon_rate,
+        .oxygen_rating = oxygen_rating,
+        .co2_rating = co2_rating,
+    };
 }
 
 pub fn main() void {
-    var example = get_answer_from_file("example.txt") catch {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    var example = get_answer_from_file(&gpa.allocator, "example.txt", 12) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("gamma {d} epsilon {d}\n", .{ example.gamma_rate, example.epsilon_rate });
+    std.debug.print("gamma {d} epsilon {d}\n", .{example.gamma_rate, example.epsilon_rate});
     std.debug.print("Your example answer was {d}.\n", .{example.gamma_rate * example.epsilon_rate});
+    std.debug.print("Your example answer was {d}.\n", .{example.oxygen_rating * example.co2_rating});
 
-    var answer = get_answer_from_file("input.txt") catch {
+    var answer = get_answer_from_file(&gpa.allocator, "input.txt", 1000) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("gamma {d} epsilon {d}\n", .{ answer.gamma_rate, answer.epsilon_rate });
+    std.debug.print("gamma {d} epsilon {d}\n", .{answer.gamma_rate, answer.epsilon_rate});
     std.debug.print("Your puzzle answer was {d}.\n", .{answer.gamma_rate * answer.epsilon_rate});
+    std.debug.print("Your puzzle answer was {d}.\n", .{answer.oxygen_rating * answer.co2_rating});
 }

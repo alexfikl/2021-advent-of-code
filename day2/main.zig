@@ -105,7 +105,7 @@ fn get_answer_from_file(filename: []const u8, aimed: bool) !Answer {
 
     var buffer: [128]u8 = undefined;
     while (try in_stream.readUntilDelimiterOrEof(&buffer, '\n')) |line| {
-        var it = std.mem.split(line, " ");
+        var it = std.mem.split(u8, line, " ");
         var direction = it.next().?;
         var amount = try std.fmt.parseInt(u32, it.next().?, 10);
 
@@ -142,19 +142,30 @@ fn get_answer_from_file(filename: []const u8, aimed: bool) !Answer {
 }
 
 pub fn main() void {
-    var example = get_answer_from_file("example.txt", true) catch {
+    var aimed = false;
+    var example_answer: u32 = undefined;
+    var puzzle_answer: u32 = undefined;
+    if (!aimed) {           // part 1
+        example_answer = 150;
+        puzzle_answer = 1698735;
+    } else {                // part 2
+        example_answer = 900;
+        puzzle_answer = 1594785890;
+    }
+
+    var example = get_answer_from_file("example.txt", aimed) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
     std.debug.print("Depth {d} Length {d}\n", .{ example.depth, example.length });
-    std.debug.print("Your example answer was {d}.\n", .{example.depth * example.length});
+    std.debug.print("Your example answer was {d} ({d}).\n", .{example.depth * example.length, example_answer});
 
-    var answer = get_answer_from_file("input.txt", true) catch {
+    var answer = get_answer_from_file("input.txt", aimed) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
     std.debug.print("Depth {d} Length {d}\n", .{ answer.depth, answer.length });
-    std.debug.print("Your puzzle answer was {d}.\n", .{answer.depth * answer.length});
+    std.debug.print("Your puzzle answer was {d} ({d}).\n", .{answer.depth * answer.length, puzzle_answer});
 }

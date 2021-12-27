@@ -104,7 +104,7 @@ const fs = std.fs;
 
 // {{{ helpers
 
-fn read_from_file(allocator: *std.mem.Allocator, filename: []const u8, nlines: u32) ![]u32 {
+fn read_from_file(allocator: std.mem.Allocator, filename: []const u8, nlines: u32) ![]u32 {
     var file = try fs.cwd().openFile(filename, .{ .read = true });
     defer file.close();
 
@@ -178,14 +178,15 @@ fn count_measurement_windowed_increases(measurements: []u32, window: u32) u32 {
 
 pub fn main() void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var alloc = gpa.allocator();
     defer _ = gpa.deinit();
 
-    var measurements = read_from_file(&gpa.allocator, "input.txt", 2000) catch {
+    var measurements = read_from_file(alloc, "input.txt", 2000) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
-    defer gpa.allocator.free(measurements);
+    defer alloc.free(measurements);
 
-    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_increases(measurements)});
-    std.debug.print("Your puzzle answer was {d}.\n", .{count_measurement_windowed_increases(measurements, 3)});
+    std.debug.print("Your puzzle answer was {d} ({d}).\n", .{count_measurement_increases(measurements), 1477});
+    std.debug.print("Your puzzle answer was {d} ({d}).\n", .{count_measurement_windowed_increases(measurements, 3), 1523});
 }

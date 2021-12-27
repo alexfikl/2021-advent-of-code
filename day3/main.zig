@@ -132,12 +132,7 @@
 const std = @import("std");
 const fs = std.fs;
 
-const Answer = struct {
-    gamma_rate: u32 = 0,
-    epsilon_rate: u32 = 0,
-    oxygen_rating: u32 = 0,
-    co2_rating: u32 = 0
-};
+const Answer = struct { gamma_rate: u32 = 0, epsilon_rate: u32 = 0, oxygen_rating: u32 = 0, co2_rating: u32 = 0 };
 
 fn count_bits_in_line(counts: []u32, entry: u32, nbits: usize) !void {
     var i: u5 = 0;
@@ -151,11 +146,7 @@ fn count_bits_in_line(counts: []u32, entry: u32, nbits: usize) !void {
     }
 }
 
-fn is_oxygen_rating(counts: []u32, entry: u32) bool {
-}
-
-fn get_answer_from_file(
-        allocator: *std.mem.Allocator, filename: []const u8, nlines: u32) !Answer {
+fn get_answer_from_file(allocator: std.mem.Allocator, filename: []const u8, nlines: u32) !Answer {
     var file = try fs.cwd().openFile(filename, .{ .read = true });
     defer file.close();
 
@@ -163,7 +154,7 @@ fn get_answer_from_file(
     var in_stream = reader.reader();
 
     // NOTE: just hardcoding this here for the given inputs; avoids allocations!
-    var one_bit_counts = [_]u32{ 0 } ** 12;
+    var one_bit_counts = [_]u32{0} ** 12;
     var entries = try allocator.alloc(u32, nlines);
     defer allocator.free(entries);
 
@@ -243,23 +234,24 @@ fn get_answer_from_file(
 
 pub fn main() void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    var alloc = gpa.allocator();
     defer _ = gpa.deinit();
 
-    var example = get_answer_from_file(&gpa.allocator, "example.txt", 12) catch {
+    var example = get_answer_from_file(alloc, "example.txt", 12) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("gamma {d} epsilon {d}\n", .{example.gamma_rate, example.epsilon_rate});
+    std.debug.print("gamma {d} epsilon {d}\n", .{ example.gamma_rate, example.epsilon_rate });
     std.debug.print("Your example answer was {d}.\n", .{example.gamma_rate * example.epsilon_rate});
     std.debug.print("Your example answer was {d}.\n", .{example.oxygen_rating * example.co2_rating});
 
-    var answer = get_answer_from_file(&gpa.allocator, "input.txt", 1000) catch {
+    var answer = get_answer_from_file(alloc, "input.txt", 1000) catch {
         std.debug.print("Couldn't read file.", .{});
         return;
     };
 
-    std.debug.print("gamma {d} epsilon {d}\n", .{answer.gamma_rate, answer.epsilon_rate});
+    std.debug.print("gamma {d} epsilon {d}\n", .{ answer.gamma_rate, answer.epsilon_rate });
     std.debug.print("Your puzzle answer was {d}.\n", .{answer.gamma_rate * answer.epsilon_rate});
     std.debug.print("Your puzzle answer was {d}.\n", .{answer.oxygen_rating * answer.co2_rating});
 }
